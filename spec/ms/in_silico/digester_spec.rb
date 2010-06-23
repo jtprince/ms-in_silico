@@ -1,15 +1,11 @@
-require File.join(File.dirname(__FILE__), '../../tap_test_helper.rb') 
+require File.dirname(__FILE__) + '/../../spec_helper.rb'
+
 require 'ms/in_silico/digester'
 require 'pp'
 
-class DigesterTest < Test::Unit::TestCase
-  include Ms::InSilico
-  acts_as_subset_test
-  
-  attr_accessor :digester
-  
-  def setup
-    @digester = Digester.new('arg', 'R')
+describe 'a digester' do
+  before do
+    @digester = Ms::InSilico::Digester.new('arg', 'R')
   end
   
   def spp(input, str="")
@@ -33,18 +29,14 @@ class DigesterTest < Test::Unit::TestCase
     str.join('')
   end
   
-  #
-  # documentation test
-  #
-  
-  def test_documenation
-    trypsin = Digester['Trypsin']
+  it 'performs digestion and can specify sites of digestion' do
+    trypsin = Ms::InSilico::Digester['Trypsin']
     
     expected = [
     'MIVIGR',
     'SIVHPYITNEYEPFAAEK',
     'QQILSIMAG']
-    assert_equal expected, trypsin.digest('MIVIGRSIVHPYITNEYEPFAAEKQQILSIMAG')
+    trypsin.digest('MIVIGRSIVHPYITNEYEPFAAEKQQILSIMAG').is expected
     
     expected =  [
     'MIVIGR',
@@ -52,7 +44,7 @@ class DigesterTest < Test::Unit::TestCase
     'SIVHPYITNEYEPFAAEK',
     'SIVHPYITNEYEPFAAEKQQILSIMAG',
     'QQILSIMAG']
-    assert_equal expected, trypsin.digest('MIVIGRSIVHPYITNEYEPFAAEKQQILSIMAG', 1)
+    trypsin.digest('MIVIGRSIVHPYITNEYEPFAAEKQQILSIMAG', 1).is expected
     
     expected = [
     [0,6],
@@ -60,43 +52,35 @@ class DigesterTest < Test::Unit::TestCase
     [6,24],
     [6,33],
     [24,33]]
-    assert_equal expected, trypsin.site_digest('MIVIGRSIVHPYITNEYEPFAAEKQQILSIMAG', 1)
+    trypsin.site_digest('MIVIGRSIVHPYITNEYEPFAAEKQQILSIMAG', 1).is expected
   end
   
-  #
-  # misc tests
-  #
-  
-  def test_digest_ignores_whitespace
+  it 'completely ignores whitespace inside protein sequences' do
     expected = [
     "\tMIVIGR",
     "SIVHP\nYITNEYEPFAAE K",
     "QQILSI\rMAG"]
-    assert_equal expected, Digester['Trypsin'].digest("\tMIVIGRSIVHP\nYITNEYEPFAAE KQQILSI\rMAG")
+    Ms::InSilico::Digester['Trypsin'].digest("\tMIVIGRSIVHP\nYITNEYEPFAAE KQQILSI\rMAG").is expected
   end
   
-  #
-  # cleavage_sites
-  #
-  
-  def test_cleavage_sites_documentation
-    d = Digester.new('Trypsin', 'KR', 'P')
+  it 'runs cleavage sites documentation' do
+    d = Ms::InSilico::Digester.new('Trypsin', 'KR', 'P')
     seq = "AARGGR"
     sites = d.cleavage_sites(seq)
-    assert_equal [0, 3, 6], sites
+    sites.is [0, 3, 6]
     
-    assert_equal "AAR", seq[sites[0], sites[0+1] - sites[0]]
-    assert_equal "GGR", seq[sites[1], sites[1+1] - sites[1]]
+    seq[sites[0], sites[0+1] - sites[0]].is "AAR"
+    seq[sites[1], sites[1+1] - sites[1]].is "GGR"
     
     seq = "AAR  \n  GGR"
     sites = d.cleavage_sites(seq)
-    assert_equal [0, 8, 11], sites
+    sites.is [0, 8, 11]
 
-    assert_equal "AAR  \n  ", seq[sites[0], sites[0+1] - sites[0]]
-    assert_equal "GGR", seq[sites[1], sites[1+1] - sites[1]]
+    seq[sites[0], sites[0+1] - sites[0]].is "AAR  \n  "
+    seq[sites[1], sites[1+1] - sites[1]].is "GGR"
   end
   
-  def test_cleavage_sites
+  it 'finds cleavage site indices' do
     {
       "" => [0,0],
       "A" => [0,1],
@@ -111,13 +95,13 @@ class DigesterTest < Test::Unit::TestCase
       
       "R\nR\nR" => [0,2,4,5],
       "R\n\n\nR\nR\n\n" => [0,4,6,9]
-   }.each_pair  do |sequence, expected|
-      assert_equal expected, digester.cleavage_sites(sequence), sequence
+   }.each do |sequence, expected|
+       @digester.cleavage_sites(sequence).is expected
     end
   end
 
-  def test_cleavage_sites_with_exception
-    @digester = Digester.new('argp', 'R', 'P')
+  it 'finds cleavage sites with exception' do
+    @digester = Ms::InSilico::Digester.new('argp', 'R', 'P')
     {
       "" => [0,0],
       "A" => [0,1],
@@ -141,38 +125,33 @@ class DigesterTest < Test::Unit::TestCase
       "R\nPR\nR" => [0,5,6],
       "RP\nR\nR" => [0,5,6],
       "RP\nR\nR\n" => [0,5,7]
-    }.each_pair  do |sequence, expected|
-      assert_equal expected, digester.cleavage_sites(sequence), sequence
+    }.each do |sequence, expected|
+       @digester.cleavage_sites(sequence).is expected
     end
   end
   
-  def test_cleavage_sites_with_offset_and_limit
+  it 'finds cleavage sites with offset and limit' do
     {
       "RxxR" => [2,4],
       "RxAxR" => [2,4],
       "RxAAAxR" => [2,4],
       "RxRRRxR" => [2,3,4]
-    }.each_pair do |sequence, expected|
-      assert_equal expected, digester.cleavage_sites(sequence, 2, 2), sequence
+    }.each do |sequence, expected|
+       @digester.cleavage_sites(sequence, 2, 2).is expected
     end
   end
   
-  def test_cleavage_sites_speed
-    benchmark_test(20) do |x|
-      str = nk_string(10, 1000)
-       assert_equal 11, digester.cleavage_sites(str).length
-      
+  it 'finds cleavage sites fast' do
+    str = nk_string(10, 1000)
+     @digester.cleavage_sites(str).length.is 11
+    benchmark(20) do |x|
       x.report("10kx - fragments") do 
-        10000.times { digester.cleavage_sites(str) }
+        10000.times { @digester.cleavage_sites(str) }
       end
     end
   end
 
-  #
-  # digest
-  #
-
-  def test_digest
+  it 'digests proteins' do
     {
       "" => [''],
       "A" => ["A"],
@@ -184,12 +163,13 @@ class DigesterTest < Test::Unit::TestCase
       "RRA" => ["R", "R", "A"],
       "RAR" => ["R", "AR"],
       "RRR" => ["R", "R", "R"]
-    }.each_pair do |sequence, expected|
-      assert_equal expected, digester.digest(sequence) {|frag, s, e| frag}, spp(sequence)
+    }.each do |sequence, expected|
+      # spp(sequence)
+       @digester.digest(sequence) {|frag, s, e| frag}.is expected
     end
   end
 
-  def test_digest_with_missed_cleavage
+  it 'digests with missed cleavages' do
     {
       "" => [''],
       "A" => ["A"],
@@ -201,12 +181,12 @@ class DigesterTest < Test::Unit::TestCase
       "RRA" => ["R", "RR", "R", "RA", "A"],
       "RAR" => ["R", "RAR", "AR"],
       "RRR" => ["R", "RR", "R", "RR", "R"]
-    }.each_pair do |sequence, expected|
-      assert_equal expected, digester.digest(sequence, 1) {|frag, s, e| frag}, sequence
+    }.each do |sequence, expected|
+       @digester.digest(sequence, 1) {|frag, s, e| frag}.is expected
     end
   end
   
-  def test_digest_with_two_missed_cleavages
+  it 'digests with two missed cleavages' do
     {
       "" => [''],
       "A" => ["A"],
@@ -218,27 +198,22 @@ class DigesterTest < Test::Unit::TestCase
       "RRA" => ["R", "RR", "RRA", "R", "RA", "A"],
       "RAR" => ["R", "RAR", "AR"],
       "RRR" => ["R", "RR", "RRR", "R", "RR", "R"]
-    }.each_pair do |sequence, expected|
-      assert_equal expected, digester.digest(sequence, 2) {|frag, s, e| frag}, sequence
+    }.each do |sequence, expected|
+       @digester.digest(sequence, 2) {|frag, s, e| frag}.is expected
     end
   end
   
-  def test_digest_speed
-    benchmark_test(20) do |x|
-      str = nk_string(10, 1000)
-       assert_equal 10, digester.digest(str).length
-      
+  it 'digests fast' do
+    str = nk_string(10, 1000)
+     @digester.digest(str).length.is 10
+    benchmark(20) do |x|
       x.report("10kx - fragments") do 
-        10000.times { digester.digest(str) }
+        10000.times { @digester.digest(str) }
       end
     end
   end
 
-  #
-  # site digest
-  #
-  
-  def test_site_digest
+  it 'finds sites to be digested' do
     {
       "" => [[0,0]],
       "A" => [[0,1]],
@@ -250,12 +225,12 @@ class DigesterTest < Test::Unit::TestCase
       "RRA" => [[0,1],[1,2],[2,3]],
       "RAR" => [[0,1],[1,3]],
       "RRR" => [[0,1],[1,2],[2,3]]
-    }.each_pair do |sequence, expected|
-      assert_equal expected, digester.site_digest(sequence), sequence
+    }.each do |sequence, expected|
+       @digester.site_digest(sequence).is expected
     end
   end
   
-  def test_site_digest_with_missed_cleavage
+  it 'finds sites to be digested with missed cleavages' do
     {
       "" => [[0,0]],
       "A" => [[0,1]],
@@ -267,12 +242,12 @@ class DigesterTest < Test::Unit::TestCase
       "RRA" => [[0,1],[0,2],[1,2],[1,3],[2,3]],
       "RAR" => [[0,1],[0,3],[1,3]],
       "RRR" => [[0,1],[0,2],[1,2],[1,3],[2,3]]
-    }.each_pair do |sequence, expected|
-      assert_equal expected, digester.site_digest(sequence, 1), sequence
+    }.each do |sequence, expected|
+       @digester.site_digest(sequence, 1).is expected
     end
   end
   
-  def test_site_digest_with_two_missed_cleavages
+  it 'finds sites to be digested with two missed cleavages' do
     {
       "" => [[0,0]],
       "A" => [[0,1]],
@@ -284,28 +259,23 @@ class DigesterTest < Test::Unit::TestCase
       "RRA" => [[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]],
       "RAR" => [[0,1],[0,3],[1,3]],
       "RRR" => [[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]]
-    }.each_pair do |sequence, expected|
-      assert_equal expected, digester.site_digest(sequence, 2), sequence
+    }.each do |sequence, expected|
+       @digester.site_digest(sequence, 2).is expected
     end
   end
   
-  def test_site_digest_speed
-    benchmark_test(20) do |x|
-      str = nk_string(10, 1000)
-       assert_equal 10, digester.site_digest(str).length
-      
+  it 'does site digestion fast' do
+    str = nk_string(10, 1000)
+     @digester.site_digest(str).length.is 10
+    benchmark(20) do |x|
       x.report("10kx - fragments") do 
-        10000.times { digester.site_digest(str) }
+        10000.times { @digester.site_digest(str) }
       end
     end
   end
   
-  #
-  # trypsin
-  #
-  
-  def test_trypsin_digest
-    trypsin = Digester::TRYPSIN
+  it 'does a trypsin digest' do
+    trypsin = Ms::InSilico::Digester::TRYPSIN
     {
       "" => [''],
       "A" => ["A"],
@@ -323,8 +293,8 @@ class DigesterTest < Test::Unit::TestCase
       "PRA" => ["PR","A"],
       "ARPARAA" => ["ARPAR", "AA"],
       "RPRRR" => ["RPR", "R", "R"]
-    }.each_pair do |sequence, expected|
-      assert_equal expected, trypsin.digest(sequence) {|frag, s, e| frag}, sequence
+    }.each do |sequence, expected|
+       trypsin.digest(sequence) {|frag, s, e| frag}.is expected
     end
   end
  

@@ -1,26 +1,24 @@
-require File.join(File.dirname(__FILE__), '../../tap_test_helper.rb')
+require File.dirname(__FILE__) + '/../../spec_helper'
 require 'ms/in_silico/spectrum'
 
-class SpectrumTest < Test::Unit::TestCase
-  include Ms::InSilico
-  acts_as_subset_test
+# class locate_residues tests
+class Subclass < Ms::InSilico::Spectrum
+  locate_residues "PS"
+end
+
+class Cumulative < Ms::InSilico::Spectrum
+  locate_residues "PS"
+end
+
+
+describe 'creating spectral fragmentation ladders' do
   
-  #
-  # class locate_residues tests
-  #
-  
-  class Subclass < Spectrum
-    locate_residues "PS"
+  it 'locates residues' do
+    hash = {'P' => [1, 2, 6], 'S' => [5]}
+    Subclass.new('RPPGFSPFR').residue_locations.is hash
   end
   
-  def test_locate_residues_documentation
-    assert_equal({'P' => [1, 2, 6], 'S' => [5]}, Subclass.new('RPPGFSPFR').residue_locations) 
-  end
-  
-  class Cumulative < Spectrum
-    locate_residues "PS"
-  end
-  
+=begin
   def test_locate_calls_are_cumulative
     assert_equal "PS", Cumulative.residues_to_locate
     
@@ -76,5 +74,6 @@ class SpectrumTest < Test::Unit::TestCase
       x.report("1k RPPGFSPFR * 10") { 1000.times { Spectrum.new("RPPGFSPFR" * 10) } }
     end
   end
+=end
 
 end
