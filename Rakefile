@@ -1,98 +1,43 @@
 require 'rake'
+require 'jeweler'
 require 'rake/testtask'
 require 'rake/rdoctask'
-require 'rake/gempackagetask'
+require 'rcov/rcovtask'
 
-#
-# Gem specification
-#
+Jeweler::Tasks.new do |gem|
+  gem.name = "ms-in_silico"
+  gem.summary = 'in-silico calculations for mass spec data'
+  gem.description = 'peptide fragmentation and protein digestion'
+  gem.email = "jtprince@gmail.com"
+  gem.homepage = "http://github.com/jtprince/ms-in_silico"
+  gem.authors = ["Simon Chiang"]
+  gem.rubyforge_project = "mspire"
+  gem.add_dependency("molecules", ">= 0.2.0")
+  gem.add_dependency("tap", ">= 0.17.0")
+  gem.add_development_dependency("tap-test", ">= 0.1.0")
+  gem.add_development_dependency("spec-more", ">= 0")
+end
+Jeweler::GemcutterTasks.new
 
-def gemspec
-  data = File.read('ms-in_silico.gemspec')
-  spec = nil
-  Thread.new { spec = eval("$SAFE = 3\n#{data}") }.join
-  spec
+Rake::TestTask.new(:spec) do |spec|
+  spec.libs << 'lib' << 'spec'
+  spec.pattern = 'spec/**/*_spec.rb'
+  spec.verbose = true
 end
 
-Rake::GemPackageTask.new(gemspec) do |pkg|
-  pkg.need_tar = true
+Rcov::RcovTask.new do |spec|
+  spec.libs << 'spec'
+  spec.pattern = 'spec/**/*_spec.rb'
+  spec.verbose = true
 end
 
-desc 'Prints the gemspec manifest.'
-task :print_manifest do
-  # collect files from the gemspec, labeling 
-  # with true or false corresponding to the
-  # file existing or not
-  files = gemspec.files.inject({}) do |files, file|
-    files[File.expand_path(file)] = [File.exists?(file), file]
-    files
-  end
-  
-  # gather non-rdoc/pkg files for the project
-  # and add to the files list if they are not
-  # included already (marking by the absence
-  # of a label)
-  Dir.glob("**/*").each do |file|
-    next if file =~ /^(rdoc|pkg)/ || File.directory?(file)
-    
-    path = File.expand_path(file)
-    files[path] = ["", file] unless files.has_key?(path)
-  end
-  
-  # sort and output the results
-  files.values.sort_by {|exists, file| file }.each do |entry| 
-    puts "%-5s %s" % entry
-  end
-end
+task :default => :spec
 
-#
-# Documentation tasks
-#
+Rake::RDocTask.new do |rdoc|
+  version = File.exist?('VERSION') ? File.read('VERSION') : ""
 
-desc 'Generate documentation.'
-Rake::RDocTask.new(:rdoc) do |rdoc|
-  spec = gemspec
-  
   rdoc.rdoc_dir = 'rdoc'
-  rdoc.title    = 'ms-in_silico'
-  rdoc.main   = 'README'
-  rdoc.options << '--line-numbers' << '--inline-source'
-  rdoc.rdoc_files.include( spec.extra_rdoc_files )
-  rdoc.rdoc_files.include( spec.files.select {|file| file =~ /^lib.*\.rb$/} )
-  
-  # Using CDoc to template your Rdoc will result in configurations being
-  # listed with documentation in a subsection following attributes.  Not
-  # necessary, but nice.
-  require 'cdoc'
-  rdoc.template = 'cdoc/cdoc_html_template' 
-  rdoc.options << '--fmt' << 'cdoc'
+  rdoc.title = "ms-in_silico #{version}"
+  rdoc.rdoc_files.include('README*')
+  rdoc.rdoc_files.include('lib/**/*.rb')
 end
-
-desc "Publish RDoc to RubyForge"
-task :publish_rdoc => [:rdoc] do
-  require 'yaml'
-  
-  config = YAML.load(File.read(File.expand_path("~/.rubyforge/user-config.yml")))
-  host = "#{config["username"]}@rubyforge.org"
-  
-  rsync_args = "-v -c -r"
-  remote_dir = "/var/www/gforge-projects/mspire/projects/ms-in_silico"
-  local_dir = "rdoc"
- 
-  sh %{rsync #{rsync_args} #{local_dir}/ #{host}:#{remote_dir}}
-end
-
-#
-# Test tasks
-#
-
-desc 'Default: Run tests.'
-task :default => :test
-
-desc 'Run tests.'
-Rake::TestTask.new(:test) do |t|
-  t.test_files = Dir.glob( File.join('test', ENV['pattern'] || '**/*_test.rb') )
-  t.verbose = true
-  t.warning = true
-end
-
