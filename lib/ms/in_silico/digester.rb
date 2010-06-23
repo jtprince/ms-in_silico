@@ -241,7 +241,7 @@ module Ms
       
       # ARG_C = mascot_parse('Arg-C 	C-Term 	R 	P 	 no 	 no')
       # ENZYMES[:arg_c] = ARG_C
-      ENYZMES = {
+      ENZYMES = {
         :arg_c => 'Arg-C 	C-Term 	R 	P 	 no 	 no',
         :asp_n => 'Asp-N 	N-Term 	BD 	  	no 	no',
         :asp_n_ambic => 'Asp-N_ambic 	N-Term 	DE 	  	no 	no',
@@ -276,9 +276,8 @@ module Ms
         :v8_de_trypsin => 'V8-DE+Trypsin 	C-Term 	BDEKRZ 	P 	no 	no',
       }
       ENZYMES.each do |k,v| 
-        konst = self.const_get(k.upcase)
-        konst = mascot_parse(v)
-        ENZYMES[k] = konst
+        self.const_set(k.upcase, mascot_parse(v))
+        ENZYMES[k] = self.const_get(k.upcase)
       end
 
       include Constants::Library  
