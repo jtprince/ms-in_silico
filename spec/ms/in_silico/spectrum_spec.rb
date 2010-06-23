@@ -14,66 +14,55 @@ end
 describe 'creating spectral fragmentation ladders' do
   
   it 'locates residues' do
-    hash = {'P' => [1, 2, 6], 'S' => [5]}
-    Subclass.new('RPPGFSPFR').residue_locations.is hash
+    Subclass.new('RPPGFSPFR').residue_locations.is( {'P' => [1, 2, 6], 'S' => [5]} )
   end
   
-=begin
-  def test_locate_calls_are_cumulative
-    assert_equal "PS", Cumulative.residues_to_locate
-    
+  it 'does cumulative locate calls' do
+    Cumulative.residues_to_locate.is "PS"
     Cumulative.locate_residues "R"
-    assert_equal "PSR", Cumulative.residues_to_locate
-    
+    Cumulative.residues_to_locate.is "PSR"
+
     Cumulative.locate_residues "G"
-    assert_equal "PSRG", Cumulative.residues_to_locate
+    Cumulative.residues_to_locate.is "PSRG"
   end
-  
-  #
-  # series test
-  #
-  
-  def test_series_documentation
-    f = Spectrum.new 'RPPGFSPFR' 
-    assert_equal f.series('y'), f.y_series
-    assert_equal f.series('b++'), f.b_series(2)
-    assert_equal f.series('nladder-'), f.nladder_series(-1)
+
+  it 'creates spectral series' do
+    f = Ms::InSilico::Spectrum.new 'RPPGFSPFR' 
+    f.y_series.is f.series('y')
+    f.b_series(2).is f.series('b++')
+    f.nladder_series(-1).is f.series('nladder-')
   end
-  
-  def test_series_can_specify_charge
-    f = Spectrum.new 'RPPGFSPFR' 
-    assert_equal f.series('y'), f.y_series
-    
-    assert_equal f.series('y-'), f.y_series(-1)
-    assert_equal f.series('y--'), f.y_series(-2)
-    
-    assert_equal f.series('y+'), f.y_series(1)
-    assert_equal f.series('y++'), f.y_series(2)
-    
-    assert_equal f.series('y++---'), f.y_series(-1)
+
+  it 'specifies charges' do
+    f = Ms::InSilico::Spectrum.new 'RPPGFSPFR' 
+    f.y_series.is f.series('y')
+
+    f.y_series(-1).is f.series('y-')
+    f.y_series(-2).is f.series('y--')
+
+    f.y_series(1).is f.series('y+')
+    f.y_series(2).is f.series('y++')
+
+    f.y_series(-1).is f.series('y++---')
   end
-  
-  def test_series_raises_error_for_zero_charge_and_unknown_series
-    f = Spectrum.new('SAMPLE')
-    assert_raise(ArgumentError) { f.series 'y+-' }
-    assert_raise(ArgumentError) { f.series 'q' }
+
+  it 'raises an error for zero charge or unknown series' do
+    f = Ms::InSilico::Spectrum.new('SAMPLE')
+    lambda { f.series 'y+-' }.should.raise ArgumentError
+    lambda { f.series 'q' }.should.raise ArgumentError
   end
-  
-  def test_sequences_may_contain_whitespace
-    s = Spectrum.new('SAMPLE')
-    s1 = Spectrum.new(" SA\n  MPL\t \rE  ")
-    assert_equal s.series('y'), s1.series('y')
+
+  it 'handles whitespace in the peptide spec' do
+    s = Ms::InSilico::Spectrum.new('SAMPLE')
+    s1 = Ms::InSilico::Spectrum.new(" SA\n  MPL\t \rE  ")
+    s1.series('y').is s.series('y')
   end
-  
-  #
-  # benchmarks
-  #
-  
-  def test_fragment_speed
-    benchmark_test(20) do |x|
-      x.report("1k RPPGFSPFR * 10") { 1000.times { Spectrum.new("RPPGFSPFR" * 10) } }
+
+  it 'is fast' do
+    1.is 1
+    benchmark(20) do |x|
+      x.report("1k RPPGFSPFR * 10") { 1000.times { Ms::InSilico::Spectrum.new("RPPGFSPFR" * 10) } }
     end
   end
-=end
 
 end

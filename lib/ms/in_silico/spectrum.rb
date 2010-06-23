@@ -149,7 +149,7 @@ module Ms
           hash = {}
           0.upto(residues_to_locate.length-1) do |index|
             letter = residues_to_locate[index, 1]
-            byte = letter[0]
+            byte = letter[0,1].ord
             hash[letter] = locations[byte]
           end
 
