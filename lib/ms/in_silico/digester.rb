@@ -239,23 +239,48 @@ module Ms
         end
       end
       
-      ARG_C =         mascot_parse('Arg-C 	C-Term 	R 	P 	 no 	 no')
-      ASP_N =         mascot_parse('Asp-N 	N-Term 	BD 	  	no 	no')
-      ASP_N_AMBIC =   mascot_parse('Asp-N_ambic 	N-Term 	DE 	  	no 	no')
-      CHYMOTRYPSIN =  mascot_parse('Chymotrypsin 	C-Term 	FLWY 	P 	no 	no')
-      CNBR =          mascot_parse('CNBr 	C-Term 	M 	  	no 	no')
-      LYS_C =         mascot_parse('Lys-C 	C-Term 	K 	P 	no 	no')
-      LYS_C_P =       mascot_parse('Lys-C/P 	C-Term 	K 	  	no 	no')
-      PEPSIN_A =      mascot_parse('PepsinA 	C-Term 	FL 	  	no 	no')
-      TRYP_CNBR =     mascot_parse('Tryp-CNBr 	C-Term 	KMR 	P 	no 	no')
-      TRYP_CHYMO =    mascot_parse('TrypChymo 	C-Term 	FKLRWY 	P 	no 	no')
-      TRYPSIN_P =     mascot_parse('Trypsin/P 	C-Term 	KR 	  	no 	no')
-      V8_DE =         mascot_parse('V8-DE 	C-Term 	BDEZ 	P 	no 	no')
-      V8_E =          mascot_parse('V8-E 	C-Term 	EZ 	P 	no 	no')
-      TRYPSIN =       mascot_parse('Trypsin 	C-Term	KR 	P 	no 	no')
-      V8_E_TRYPSIN =  mascot_parse('V8-E+Trypsin 	C-Term 	EKRZ 	P 	no 	no')
-      V8_DE_TRYPSIN = mascot_parse('V8-DE+Trypsin 	C-Term 	BDEKRZ 	P 	no 	no')
-      
+      # ARG_C = mascot_parse('Arg-C 	C-Term 	R 	P 	 no 	 no')
+      # ENZYMES[:arg_c] = ARG_C
+      ENYZMES = {
+        :arg_c => 'Arg-C 	C-Term 	R 	P 	 no 	 no',
+        :asp_n => 'Asp-N 	N-Term 	BD 	  	no 	no',
+        :asp_n_ambic => 'Asp-N_ambic 	N-Term 	DE 	  	no 	no',
+        :chymotrypsin => 'Chymotrypsin 	C-Term 	FLWY 	P 	no 	no',
+        :cnbr => 'CNBr 	C-Term 	M 	  	no 	no',
+        :lys_c => 'Lys-C 	C-Term 	K 	P 	no 	no',
+        :lys_c_p => 'Lys-C/P 	C-Term 	K 	  	no 	no',
+        :pepsin_a => 'PepsinA 	C-Term 	FL 	  	no 	no',
+        :tryp_cnbr => 'Tryp-CNBr 	C-Term 	KMR 	P 	no 	no',
+        :tryp_chymo => 'TrypChymo 	C-Term 	FKLRWY 	P 	no 	no',
+        :trypsin_p => 'Trypsin/P 	C-Term 	KR 	  	no 	no',
+        :v8_de => 'V8-DE 	C-Term 	BDEZ 	P 	no 	no',
+        :v8_e => 'V8-E 	C-Term 	EZ 	P 	no 	no',
+        :trypsin => 'Trypsin 	C-Term	KR 	P 	no 	no',
+        :v8_e_trypsin => 'V8-E+Trypsin 	C-Term 	EKRZ 	P 	no 	no',
+        :v8_de_trypsin => 'V8-DE+Trypsin 	C-Term 	BDEKRZ 	P 	no 	no',
+        :arg_c => 'Arg-C 	C-Term 	R 	P 	 no 	 no',
+        :asp_n => 'Asp-N 	N-Term 	BD 	  	no 	no',
+        :asp_n_ambic => 'Asp-N_ambic 	N-Term 	DE 	  	no 	no',
+        :chymotrypsin => 'Chymotrypsin 	C-Term 	FLWY 	P 	no 	no',
+        :cnbr => 'CNBr 	C-Term 	M 	  	no 	no',
+        :lys_c => 'Lys-C 	C-Term 	K 	P 	no 	no',
+        :lys_c_p => 'Lys-C/P 	C-Term 	K 	  	no 	no',
+        :pepsin_a => 'PepsinA 	C-Term 	FL 	  	no 	no',
+        :tryp_cnbr => 'Tryp-CNBr 	C-Term 	KMR 	P 	no 	no',
+        :tryp_chymo => 'TrypChymo 	C-Term 	FKLRWY 	P 	no 	no',
+        :trypsin_p => 'Trypsin/P 	C-Term 	KR 	  	no 	no',
+        :v8_de => 'V8-DE 	C-Term 	BDEZ 	P 	no 	no',
+        :v8_e => 'V8-E 	C-Term 	EZ 	P 	no 	no',
+        :trypsin => 'Trypsin 	C-Term	KR 	P 	no 	no',
+        :v8_e_trypsin => 'V8-E+Trypsin 	C-Term 	EKRZ 	P 	no 	no',
+        :v8_de_trypsin => 'V8-DE+Trypsin 	C-Term 	BDEKRZ 	P 	no 	no',
+      }
+      ENZYMES.each do |k,v| 
+        konst = self.const_get(k.upcase)
+        konst = mascot_parse(v)
+        ENZYMES[k] = konst
+      end
+
       include Constants::Library  
       library.index_by_attribute :name
     end
