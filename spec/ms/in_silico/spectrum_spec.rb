@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../spec_helper'
+require 'spec_helper'
 require 'ms/in_silico/spectrum'
 
 # class locate_residues tests

@@ -1,9 +1,9 @@
-require 'tap/task'
 require 'ms/in_silico/spectrum'
 
 module Ms
   module InSilico
     
+=begin
     # :startdoc::task calculates a theoretical ms/ms spectrum
     #
     # Calculates the theoretical ms/ms spectrum for a peptide sequence.
@@ -66,5 +66,6 @@ module Ms
       end
       
     end 
+=end
   end
 end

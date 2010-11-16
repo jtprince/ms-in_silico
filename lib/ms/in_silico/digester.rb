@@ -105,10 +105,10 @@ module Ms
         @scanner = StringScanner.new('')
       end
 
-      # Returns sites of digestion sites in sequence, as determined by
-      # thecleave_regexp boundaries.  The digestion sites correspond
-      # to the positions where a peptide begins and ends, such that
-      # [n, (n+1) - n] corresponds to the [index, length] for peptide n.
+      # Returns digestion sites in sequence, as determined by the
+      # cleave_regexp boundaries.  The digestion sites correspond to the
+      # positions where a peptide begins and ends, such that [n, (n+1) - n]
+      # corresponds to the [index, length] for peptide n.
       #
       #   d = Digester.new('Trypsin', 'KR', 'P')
       #   seq = "AARGGR"
@@ -128,19 +128,25 @@ module Ms
       # The digested section of sequence may be specified using offset 
       # and length.
       def cleavage_sites(seq, offset=0, length=seq.length-offset)
+        return [0, 1] if seq.size == 1  # adding exceptions is lame--algorithm should just work
+
         adjustment = cterm_cleavage ? 0 : 1
         limit = offset + length
-      
+
         positions = [offset]
         pos = scan(seq, offset, limit) do |pos|
-          positions << pos - adjustment
+          positions << (pos - adjustment)
         end
 
         # add the final position
-        if pos < limit || positions.length == 1
+        if (pos < limit) || (positions.length == 1)
           positions << limit
         end
-
+        # adding exceptions is lame.. this code probably needs to be
+        # refactored (corrected).
+        if !cterm_cleavage && pos == limit
+          positions << limit
+        end
         positions
       end
 
@@ -151,14 +157,14 @@ module Ms
       # 
       # Each [start_index, end_index] pair is yielded to the block, if given,
       # and the collected results are returned.
-      def site_digest(seq, max_misses=0, offset=0, length=seq.length-offset) # :yields: start_index, end_index
+      def site_digest(seq, max_misses=0, offset=0, length=seq.length-offset, &block) # :yields: start_index, end_index
         frag_sites = cleavage_sites(seq, offset, length)
       
         overlay(frag_sites.length, max_misses, 1) do |start_index, end_index|
           start_index = frag_sites[start_index]
           end_index = frag_sites[end_index]
     
-          block_given? ? yield(start_index, end_index) : [start_index, end_index]
+          block ? block.call(start_index, end_index) : [start_index, end_index]
         end  
       end
 
@@ -167,7 +173,7 @@ module Ms
       # as in that method, the digested section of sequence may be specified using 
       # offset and length.
       def digest(seq, max_misses=0, offset=0, length=seq.length-offset)
-        site_digest(seq, max_misses, offset, length).collect do |s, e|
+        site_digest(seq, max_misses, offset, length).map do |s, e|
           seq[s, e-s]
         end
       end
@@ -183,7 +189,7 @@ module Ms
       # Scans seq between offset and limit for the cleave_regexp, skipping whitespace
       # and being mindful of exception characters. The positions of the scanner at
       # each match are yielded to the block.      
-      def scan(seq, offset, limit) # :nodoc:
+      def scan(seq, offset, limit, &block) # :nodoc:
         scanner.string = seq
         scanner.pos = offset
 
@@ -197,7 +203,7 @@ module Ms
           # break if you scanned past the upper limit
           break if pos > limit
         
-          yield pos
+          block.call(pos)
         end
       
         scanner.pos
@@ -205,14 +211,14 @@ module Ms
     
       # Performs an overlap-collect algorithm providing the start and end 
       # indicies of spans skipping up to max_misses boundaries.
-      def overlay(n, max_misses, offset) # :nodoc:
+      def overlay(n, max_misses, offset, &block) # :nodoc:
         results = []
         0.upto(n-1) do |start_index|
           0.upto(max_misses) do |n_miss|
             end_index = start_index + offset + n_miss
             break if end_index == n
     
-            results << yield(start_index, end_index)
+            results << block.call(start_index, end_index)
           end
         end
         results

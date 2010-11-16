@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/../../spec_helper.rb'
+require 'spec_helper.rb'
 
 require 'ms/in_silico/digester'
 require 'pp'
@@ -28,58 +28,7 @@ describe 'a digester' do
         
     str.join('')
   end
-  
-  it 'performs digestion and can specify sites of digestion' do
-    trypsin = Ms::InSilico::Digester['Trypsin']
-    
-    expected = [
-    'MIVIGR',
-    'SIVHPYITNEYEPFAAEK',
-    'QQILSIMAG']
-    trypsin.digest('MIVIGRSIVHPYITNEYEPFAAEKQQILSIMAG').is expected
-    
-    expected =  [
-    'MIVIGR',
-    'MIVIGRSIVHPYITNEYEPFAAEK',
-    'SIVHPYITNEYEPFAAEK',
-    'SIVHPYITNEYEPFAAEKQQILSIMAG',
-    'QQILSIMAG']
-    trypsin.digest('MIVIGRSIVHPYITNEYEPFAAEKQQILSIMAG', 1).is expected
-    
-    expected = [
-    [0,6],
-    [0,24],
-    [6,24],
-    [6,33],
-    [24,33]]
-    trypsin.site_digest('MIVIGRSIVHPYITNEYEPFAAEKQQILSIMAG', 1).is expected
-  end
-  
-  it 'completely ignores whitespace inside protein sequences' do
-    expected = [
-    "\tMIVIGR",
-    "SIVHP\nYITNEYEPFAAE K",
-    "QQILSI\rMAG"]
-    Ms::InSilico::Digester['Trypsin'].digest("\tMIVIGRSIVHP\nYITNEYEPFAAE KQQILSI\rMAG").is expected
-  end
-  
-  it 'runs cleavage sites documentation' do
-    d = Ms::InSilico::Digester.new('Trypsin', 'KR', 'P')
-    seq = "AARGGR"
-    sites = d.cleavage_sites(seq)
-    sites.is [0, 3, 6]
-    
-    seq[sites[0], sites[0+1] - sites[0]].is "AAR"
-    seq[sites[1], sites[1+1] - sites[1]].is "GGR"
-    
-    seq = "AAR  \n  GGR"
-    sites = d.cleavage_sites(seq)
-    sites.is [0, 8, 11]
 
-    seq[sites[0], sites[0+1] - sites[0]].is "AAR  \n  "
-    seq[sites[1], sites[1+1] - sites[1]].is "GGR"
-  end
-  
   it 'finds cleavage site indices' do
     {
       "" => [0,0],
@@ -129,7 +78,9 @@ describe 'a digester' do
        @digester.cleavage_sites(sequence).is expected
     end
   end
-  
+
+    
+   
   it 'finds cleavage sites with offset and limit' do
     {
       "RxxR" => [2,4],
@@ -165,7 +116,8 @@ describe 'a digester' do
       "RRR" => ["R", "R", "R"]
     }.each do |sequence, expected|
       # spp(sequence)
-       @digester.digest(sequence) {|frag, s, e| frag}.is expected
+       @digester.digest(sequence).is expected
+       #@digester.digest(sequence) {|frag, s, e| frag}.is expected
     end
   end
 
@@ -182,7 +134,8 @@ describe 'a digester' do
       "RAR" => ["R", "RAR", "AR"],
       "RRR" => ["R", "RR", "R", "RR", "R"]
     }.each do |sequence, expected|
-       @digester.digest(sequence, 1) {|frag, s, e| frag}.is expected
+       @digester.digest(sequence, 1).is expected
+       #@digester.digest(sequence, 1) {|frag, s, e| frag}.is expected
     end
   end
   
@@ -199,7 +152,8 @@ describe 'a digester' do
       "RAR" => ["R", "RAR", "AR"],
       "RRR" => ["R", "RR", "RRR", "R", "RR", "R"]
     }.each do |sequence, expected|
-       @digester.digest(sequence, 2) {|frag, s, e| frag}.is expected
+       @digester.digest(sequence, 2).is expected
+       #@digester.digest(sequence, 2) {|frag, s, e| frag}.is expected
     end
   end
   
@@ -273,9 +227,67 @@ describe 'a digester' do
       end
     end
   end
+end
+
+
+describe 'performs as documented in readme' do
+ it 'runs cleavage sites documentation' do
+    d = Ms::InSilico::Digester.new('Trypsin', 'KR', 'P')
+    seq = "AARGGR"
+    sites = d.cleavage_sites(seq)
+    sites.is [0, 3, 6]
+    
+    seq[sites[0], sites[0+1] - sites[0]].is "AAR"
+    seq[sites[1], sites[1+1] - sites[1]].is "GGR"
+    
+    seq = "AAR  \n  GGR"
+    sites = d.cleavage_sites(seq)
+    sites.is [0, 8, 11]
+
+    seq[sites[0], sites[0+1] - sites[0]].is "AAR  \n  "
+    seq[sites[1], sites[1+1] - sites[1]].is "GGR"
+  end
+end
   
+describe 'basic trypsin digestion' do
+  it 'performs digestion and can specify sites of digestion' do
+    trypsin = Ms::InSilico::Digester['Trypsin']
+    
+    expected = [
+    'MIVIGR',
+    'SIVHPYITNEYEPFAAEK',
+    'QQILSIMAG']
+    trypsin.digest('MIVIGRSIVHPYITNEYEPFAAEKQQILSIMAG').is expected
+    
+    expected =  [
+    'MIVIGR',
+    'MIVIGRSIVHPYITNEYEPFAAEK',
+    'SIVHPYITNEYEPFAAEK',
+    'SIVHPYITNEYEPFAAEKQQILSIMAG',
+    'QQILSIMAG']
+    trypsin.digest('MIVIGRSIVHPYITNEYEPFAAEKQQILSIMAG', 1).is expected
+    
+    expected = [
+    [0,6],
+    [0,24],
+    [6,24],
+    [6,33],
+    [24,33]]
+    trypsin.site_digest('MIVIGRSIVHPYITNEYEPFAAEKQQILSIMAG', 1).is expected
+  end
+
+  it 'completely ignores whitespace inside protein sequences' do
+    expected = [
+    "\tMIVIGR",
+    "SIVHP\nYITNEYEPFAAE K",
+    "QQILSI\rMAG"]
+    Ms::InSilico::Digester['Trypsin'].digest("\tMIVIGRSIVHP\nYITNEYEPFAAE KQQILSI\rMAG").is expected
+  end
+
   it 'does a trypsin digest' do
     trypsin = Ms::InSilico::Digester::TRYPSIN
+    # alternate ways to specify the enzyme
+    Ms::InSilico::Digester::TRYPSIN.is Ms::InSilico::Digester['Trypsin']
     {
       "" => [''],
       "A" => ["A"],
@@ -294,8 +306,48 @@ describe 'a digester' do
       "ARPARAA" => ["ARPAR", "AA"],
       "RPRRR" => ["RPR", "R", "R"]
     }.each do |sequence, expected|
-       trypsin.digest(sequence) {|frag, s, e| frag}.is expected
+       trypsin.digest(sequence).is expected
     end
   end
- 
+
+
+
 end
+
+describe 'digestion with other enzymes' do
+
+  # This is how to create the enzyme:
+  # Ms::InSilico::Digester['Arg-C']
+  # Ms::InSilico::Digester::ARG_C
+  {
+      ['Arg-C', :ARG_C] => { 
+      "AARC" => ["AAR", "C"], 
+      "AARP" => ["AARP"] 
+    },
+      ['Asp-N', :ASP_N] => {
+      "AABDS" => ["AA", "B", "DS"],
+      "ADZBS" => ["A", "DZ", "BS"],
+      "B" => %w(B),
+      "A" => %w(A),
+      "ABD" => %w(A B D),
+    },
+    ['Asp-N_ambic', :ASP_N_AMBIC] => {
+      "AAEDS" => ["AA", "E", "DS"],
+      "ADZES" => ["A", "DZ", "ES"],
+      "AED" => %w(A E D),
+      "GDE" => %w(G D E),
+      "AAECCDGG" => %w(AA ECC DGG),
+    }
+  }.each do |enzyme_names, test_hash|
+    it "digests with '#{enzyme_names.first}'" do
+      digester = Ms::InSilico::Digester[enzyme_names.first]
+      digester.is Ms::InSilico::Digester.const_get(enzyme_names.last)
+      test_hash.each do |sequence, expected|
+        digester.digest(sequence).is expected
+      end
+    end
+  end
+end
+
+
+
