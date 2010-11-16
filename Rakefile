@@ -13,8 +13,6 @@ Jeweler::Tasks.new do |gem|
   gem.authors = ["Simon Chiang"]
   gem.rubyforge_project = "mspire"
   gem.add_dependency("molecules", ">= 0.2.0")
-  gem.add_dependency("tap", ">= 0.17.0")
-  gem.add_development_dependency("tap-test", ">= 0.1.0")
   gem.add_development_dependency("spec-more", ">= 0")
 end
 Jeweler::GemcutterTasks.new
