@@ -2,7 +2,7 @@ require 'rake'
 require 'jeweler'
 require 'rake/testtask'
 require 'rake/rdoctask'
-require 'rcov/rcovtask'
+#require 'rcov/rcovtask'
 
 Jeweler::Tasks.new do |gem|
   gem.name = "ms-in_silico"
@@ -12,8 +12,9 @@ Jeweler::Tasks.new do |gem|
   gem.homepage = "http://github.com/jtprince/ms-in_silico"
   gem.authors = ["Simon Chiang"]
   gem.rubyforge_project = "mspire"
-  gem.add_dependency("molecules", ">= 0.2.0")
+  gem.add_runtime_dependency("molecules", ">= 0.2.0")
   gem.add_development_dependency("spec-more", ">= 0")
+  gem.add_development_dependency "jeweler"
 end
 Jeweler::GemcutterTasks.new
 
@@ -23,11 +24,11 @@ Rake::TestTask.new(:spec) do |spec|
   spec.verbose = true
 end
 
-Rcov::RcovTask.new do |spec|
-  spec.libs << 'spec'
-  spec.pattern = 'spec/**/*_spec.rb'
-  spec.verbose = true
-end
+#Rcov::RcovTask.new do |spec|
+#  spec.libs << 'spec'
+#  spec.pattern = 'spec/**/*_spec.rb'
+#  spec.verbose = true
+#end
 
 task :default => :spec
 
